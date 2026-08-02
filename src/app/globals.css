@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "remixicon/fonts/remixicon.css";
+
+/*
+  ---------------------------------------------------------------------------
+  GLOBAL DESIGN TOKENS
+  Single source of truth for color + font. Change a value here and it
+  updates everywhere in the site (buttons, text, borders, gradients, etc.)
+  Never hardcode hex colors in components — use these tokens instead.
+  ---------------------------------------------------------------------------
+*/ 
+
+/*
+  THEME TOKENS
+  `--brand-accent` is the shade used for small accent text. It differs per
+  theme on purpose: #085974 is too dark to read on a black background, and
+  #1B8CB0 is too light to read on a white one. Components should use
+  `text-brand-accent` for accent copy and `bg-brand` for solid fills.
+
+  `--seam` / `--seam-strong` drive the gradient "seams" between sections, and
+  `--elevated` is for panels that float above imagery. Both flip with the
+  theme so no component needs a hardcoded black or white.
+*/
+:root,
+:root[data-theme="light"] {
+  /* Brand — VEMOOSC teal, taken from the logo */
+  --color-brand: #085974;
+  --color-brand-light: #1B8CB0;
+  --color-brand-dark: #05394B;
+  --brand-accent: #085974;
+
+  /* Light theme (default) */
+  --background: #ffffff;
+  --background-alt: #f2f4f7;
+  --foreground: #0b0b0d;
+  --foreground-muted: #55565f;
+  --border-color: rgba(11, 11, 13, 0.12);
+  --surface: #ffffff;
+  --elevated: rgba(255, 255, 255, 0.95);
+  --seam: rgba(255, 255, 255, 0.75);
+  --seam-strong: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="dark"] {
+  --color-brand: #085974;
+  --color-brand-light: #1B8CB0;
+  --color-brand-dark: #05394B;
+  --brand-accent: #1B8CB0;
+
+  /* Dark theme */
+  --background: #050506;
+  --background-alt: #0c0c0f;
+  --foreground: #f5f5f7;
+  --foreground-muted: #a1a1aa;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --surface: #0f0f13;
+  --elevated: rgba(12, 13, 11, 0.95);
+  --seam: rgba(0, 0, 0, 0.5);
+  --seam-strong: rgba(0, 0, 0, 0.85);
+}
+
+@theme inline {
+  --color-brand: var(--color-brand);
+  --color-brand-light: var(--color-brand-light);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-brand-accent: var(--brand-accent);
+
+  --color-background: var(--background);
+  --color-background-alt: var(--background-alt);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-border: var(--border-color);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-seam: var(--seam);
+  --color-seam-strong: var(--seam-strong);
+
+  --font-sans: var(--font-space-grotesk);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-space-grotesk), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Suppress the theme transition while the toggle swaps `data-theme`, so the
+   whole page doesn't cross-fade element by element. */
+:root.theme-switching,
+:root.theme-switching * {
+  transition: none !important;
+}
+
+/* Form controls follow the theme rather than the OS default, which otherwise
+   renders white-on-white select options in dark mode. */
+:root[data-theme="dark"] select option {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+::selection {
+  background: var(--color-brand);
+  color: #ffffff;
+}
+
+/* Hide the scrollbar everywhere while keeping the page fully scrollable
+   (wheel, touch, keyboard and programmatic scrolling all still work). */
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* Chrome, Safari, new Edge */
+}
+
+/* Intro curtain: paint the black cover before React hydrates, so the page
+   never flashes its content for a frame ahead of the curtain mounting.
+   `intro-pending` is set by a pre-paint script and removed by the component
+   once its own stripes are on screen. */
+html.intro-pending::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: #050506;
+  pointer-events: none;
+}
+
+html.intro-pending body {
+  overflow: hidden;
+}
+

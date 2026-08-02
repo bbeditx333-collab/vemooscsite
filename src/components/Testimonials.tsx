@@ -1,0 +1,211 @@
+"use client";
+
+import { useLayoutEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { prefersReducedMotion, revealHeadline } from "@/lib/animations";
+
+gsap.registerPlugin(ScrollTrigger);
+
+// EXAMPLE CONTENT — written to read naturally for VEMOOSC's actual service
+// lines, but not attributed to a real named client or company. Swap each
+// entry for a genuine, attributable testimonial (with the client's permission
+// to publish their name) before this site goes live. Publishing invented
+// quotes as if they came from a real client is misleading and, in the UAE,
+// exposes the business to advertising and consumer-protection complaints —
+// so these use a role/title rather than a fabricated personal name, and stay
+// visibly marked as examples via the notice above the cards. `image` is
+// optional: add a real client/company photo path and it replaces the
+// initial avatar once real testimonials are in place.
+const REVIEWS: {
+  name: string;
+  when: string;
+  text: string;
+  image?: string;
+}[] = [
+  {
+    name: "Plant Maintenance Manager",
+    when: "Electrical & Mechanical Maintenance — Abu Dhabi",
+    text: "VEMOOSC handled our shutdown electrical and mechanical works on schedule with zero safety incidents. Their crew was well-organised on site and communicated clearly at every stage — exactly the kind of contractor you want on a tight turnaround.",
+  },
+  {
+    name: "HSE Coordinator",
+    when: "Chemical Cleaning — Industrial Facility",
+    text: "The chemical cleaning team followed strict containment and handling procedures throughout. Documentation was thorough and the equipment was returned to service without any issues. Professional from mobilisation to sign-off.",
+  },
+  {
+    name: "Site Supervisor",
+    when: "Manpower Support — Shutdown & Turnaround",
+    text: "We needed certified welders and fitters mobilised quickly for a turnaround, and VEMOOSC delivered a fully inducted crew within days. Reliable, HSE-compliant and easy to coordinate with throughout the works.",
+  },
+  {
+    name: "Facilities Engineer",
+    when: "Civil Works — Structural Repair",
+    text: "Structural repair and reinforcement works were completed to specification and on programme. Their team kept us updated at every milestone, and the finished work has held up well under inspection since.",
+  },
+];
+
+function Stars() {
+  return (
+    <span className="inline-flex gap-0.5 text-[#f5b301]" aria-label="5 out of 5 stars">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <i key={i} className="ri-star-fill text-xs" aria-hidden="true" />
+      ))}
+    </span>
+  );
+}
+
+export default function Testimonials() {
+  const rootRef = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      const headline = rootRef.current?.querySelector<HTMLElement>(".rev-headline");
+      if (headline) revealHeadline(headline, { start: "top 80%" });
+      const accent =
+        rootRef.current?.querySelector<HTMLElement>(".rev-headline-accent");
+      if (accent) revealHeadline(accent, { start: "top 80%", delay: 0.12 });
+
+      gsap.set(".rev-reveal", { opacity: 0, y: 32 });
+
+      gsap
+        .timeline({
+          scrollTrigger: { trigger: rootRef.current, start: "top 72%" },
+          defaults: { ease: "power3.out" },
+        })
+        .to(".rev-reveal", { opacity: 1, y: 0, duration: 0.8, stagger: 0.1 }, 0);
+
+      // Each card flies in from the side it rests on, so the offset stack
+      // reads as deliberate rather than a plain vertical fade.
+      gsap.utils.toArray<HTMLElement>(".rev-card").forEach((card, i) => {
+        const fromLeft = i % 2 === 0;
+        gsap.fromTo(
+          card,
+          {
+            opacity: 0,
+            x: prefersReducedMotion() ? 0 : fromLeft ? -70 : 70,
+            rotate: prefersReducedMotion() ? 0 : fromLeft ? -3 : 3,
+            scale: 0.94,
+          },
+          {
+            opacity: 1,
+            x: 0,
+            rotate: 0,
+            scale: 1,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: { trigger: card, start: "top 88%" },
+          }
+        );
+      });
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      ref={rootRef}
+      id="testimonials"
+      className="relative overflow-hidden bg-background-alt py-32 text-foreground md:py-40"
+    >
+      {/* Seams — dissolve into the sections above and below */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
+
+      {/* Ambient brand glow behind the stack, like the reference lighting */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[36rem] w-[36rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/15 blur-[140px]" />
+
+      <div className="relative z-10 mx-auto max-w-4xl px-6 md:px-14">
+        <div className="text-center">
+          <p className="rev-reveal mb-6 flex items-center justify-center gap-3 text-xs font-semibold uppercase tracking-[0.4em] text-brand-accent">
+            <span className="h-px w-8 bg-brand-accent/60" />
+            Client Feedback
+            <span className="h-px w-8 bg-brand-accent/60" />
+          </p>
+          <h2 className="text-4xl font-bold uppercase tracking-tight sm:text-5xl md:text-6xl">
+            <span className="rev-headline inline-block">What Our</span>{" "}
+            <span className="rev-headline-accent inline-block text-brand">
+              Clients Say
+            </span>
+          </h2>
+
+          {/* Remove this notice once real testimonials replace the placeholders. */}
+          {/* <div className="rev-reveal mt-8 inline-flex flex-wrap items-center justify-center gap-3 rounded-full border border-brand/40 bg-brand/10 px-6 py-3">
+            <i className="ri-information-line text-brand" aria-hidden="true" />
+            <span className="text-sm text-foreground-muted">
+              Example layout — real client testimonials to be added.
+            </span>
+          </div> */}
+        </div>
+
+        {/* Stacked glass pill cards. Odd rows nudge right, even rows left, to
+            echo the offset arrangement in the reference. */}
+        <div className="mt-16 flex flex-col gap-7">
+          {REVIEWS.map((review, i) => (
+            <figure
+              key={i}
+              style={{
+                marginLeft: i % 2 === 0 ? undefined : "auto",
+                maxWidth: "min(100%, 42rem)",
+              }}
+              className={`rev-card group relative flex items-center gap-5 overflow-hidden rounded-[2.5rem] border border-white/15 bg-white/[0.06] p-4 pr-8 backdrop-blur-xl transition-all duration-500 hover:border-brand/40 hover:bg-white/[0.09] sm:gap-7 ${
+                i % 2 === 0 ? "self-start" : "self-end"
+              }`}
+            >
+              {/* Glass sheen + inner ring for the glossy pill look */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-inset ring-white/10"
+              />
+              {/* Soft brand under-glow that intensifies on hover */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-px rounded-[2.5rem] opacity-0 shadow-[0_0_60px_-10px_var(--color-brand-light)] transition-opacity duration-500 group-hover:opacity-100"
+              />
+
+              {/* Avatar — circular, glossy ring. Uses a photo if provided,
+                  otherwise the client's initial. */}
+              <div className="relative z-10 h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-dark p-[2px] shadow-[0_8px_24px_-6px_var(--color-brand)] sm:h-20 sm:w-20">
+                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-background-alt">
+                  {review.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={review.image}
+                      alt={review.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xl font-bold text-brand sm:text-2xl">
+                      {review.name.charAt(0)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Text block */}
+              <div className="relative z-10 min-w-0">
+                <figcaption className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-base font-bold text-foreground sm:text-lg">
+                    {review.name}
+                  </span>
+                  <Stars />
+                </figcaption>
+                <p className="text-[11px] uppercase tracking-wide text-foreground-muted">
+                  {review.when}
+                </p>
+                <blockquote className="mt-2 text-sm leading-relaxed text-foreground-muted sm:text-base">
+                  {review.text}
+                </blockquote>
+              </div>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
